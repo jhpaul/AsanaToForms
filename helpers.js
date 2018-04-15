@@ -196,7 +196,6 @@ function createBody(settingsObj, rowValues){
 
 
 function dateFormat(dateFormatArray, formTable, contents ){
-//  var dateFormatArray = JSON.parse('[{"columnName": "Date of Birth", "dateFormat": "YYYY-MM-DD"}]')
   var rowValues = {}
   var rowValuesArray = []
   for (var each in contents){
