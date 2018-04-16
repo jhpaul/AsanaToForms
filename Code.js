@@ -26,27 +26,54 @@ function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
 
 function onInstall(e) {
     onOpen(e);
+
+}
+
+function onOpen() {
+    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+        .createMenu('Asana Merge').addItem('Merge Now', 'processEntries')
+        .addItem('Settings', 'showDialog').addToUi();
+}
+
+function showDialog() {
+  var ui = HtmlService.createTemplateFromFile('Dialog')
+      .evaluate()
+      .setWidth(700)
+      .setHeight(600)
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+  SpreadsheetApp.getUi().showModalDialog(ui, "Installation Settings");
+}
+
+
+
+function buildSettings(){
+  var scriptProperties = PropertiesService.getScriptProperties();
+scriptProperties.setProperties({
+  settingsTemplate: "1fqFoBN1T_T78ME4XalCddEIosqFIghM9San3p6Fe5Ag",
+  settingsName: "SETTINGS"
+});
+Logger.log(scriptProperties.getProperties())
     var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-    var settingsName = "SETTINGS"
+    
     loadSettings(activeSpreadsheet, settingsName)
     var sheet = activeSpreadsheet.getSheetByName(settingsName)
     var range = sheet.getActiveRange()
     var protection = sheet.protect()
     activeSpreadsheet.setNamedRange(settingsName, range)
     protection.setWarningOnly(true)
+//function showSidebar() {
+ var html = HtmlService.createHtmlOutputFromFile('page')
+     .setTitle('My custom sidebar')
+     .setWidth(300);
+ SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+     .showSidebar(html);
 }
 
-function onOpen() {
-    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-        .createMenu('Asana Merge').addItem('Merge Now', 'processEntries').addToUi();
-}
-//function showSidebar() {
-//  var html = HtmlService.createHtmlOutputFromFile('page')
-//      .setTitle('My custom sidebar')
-//      .setWidth(300);
-//  SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-//      .showSidebar(html);
-//}
+
+
+// Set multiple script properties in one call.
+
+
 function processEntries() {
     try {
         runLog("Start Merge")

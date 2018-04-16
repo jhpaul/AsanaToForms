@@ -1,10 +1,10 @@
-function loadSettings(activeSpreadsheet, settingsSheetName){
+function loadSettings(activeSpreadsheet, settingsSheetName, settingsTemplateId){
   ///// Load Settings Sheet
 //  var settingsSheetName = "settings"
 //  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
 		var settings = activeSpreadsheet.getSheetByName(settingsSheetName)
         if (settings === null) {
-          var set = SpreadsheetApp.openById(SETTINGS_TEMPLATE)
+          var set = SpreadsheetApp.openById(settingsTemplateId)
           var settings = set.getSheets()[0].copyTo(activeSpreadsheet).setName(settingsSheetName)
         
           
@@ -25,12 +25,12 @@ function loadSettings(activeSpreadsheet, settingsSheetName){
 				settingsObj[key] = value
 			}
 		}
-PERSONAL_ACCESS_TOKEN = settingsObj.personalAccessToken; // Put your unique Personal access token here
-WORKSPACE_ID = settingsObj.workspaceId; // Put in the main workspace key you want to access (you can copy from asana web address)
-ASSIGNEE = settingsObj.defaultAssignee; // put in the e-mail addresss you use to log into asana
-PREMIUM = settingsObj.asanaPremium
-PREMIUM_FIELDS = JSON.parse(settingsObj.premiumFields)
-return settingsObj
+	PERSONAL_ACCESS_TOKEN = settingsObj.personalAccessToken; // Put your unique Personal access token here
+	WORKSPACE_ID = settingsObj.workspaceId; // Put in the main workspace key you want to access (you can copy from asana web address)
+	ASSIGNEE = settingsObj.defaultAssignee; // put in the e-mail addresss you use to log into asana
+	PREMIUM = settingsObj.asanaPremium
+	PREMIUM_FIELDS = JSON.parse(settingsObj.premiumFields)
+	return settingsObj
 }
 
 function loadFormTable( settingsObj, activeSpreadsheet){
@@ -233,6 +233,17 @@ function dateFormat(dateFormatArray, formTable, contents ){
   
   return {rowValues: rowValues, rowValuesArray: rowValuesArray}
 } 
+
+function getSettings(settings){
+  		var scriptProperties = PropertiesService.getScriptProperties()
+        if (settings){
+        scriptProperties.setProperties(settings)
+        }
+        return      scriptProperties.getProperties()
+}
+
+
+
 
         function loadStatusCols(settingsObj, formTable) {
           var statusCols = {}
