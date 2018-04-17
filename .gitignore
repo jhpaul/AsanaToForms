@@ -1,1 +1,4 @@
 ignore.js
+sheets-addon/
+package-lock.json
+.vs

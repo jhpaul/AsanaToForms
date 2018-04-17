@@ -68,7 +68,7 @@ function buildEmail(settingsObj, rowValuesArray, formTable, body, attachments){
     var bcc = emailSplitJoin(settingsObj.emailBcc,",",";")
     var from = settingsObj["emailFrom"]
     
-    Email.send(to, subjectName, body, subHead, cc, bcc, from, attachments)
+    Email.send(to, subjectName, body, subHead, cc, bcc, from, attachments, settingsObj["emailWebhook"])
 
 }
 
@@ -140,7 +140,7 @@ function setStatus(settingsObj, sheet, cols, row, result) {
 }
 
 var Email = {}
-Email.send = function Email(to, subject, body, subhead, cc, bcc, from, attachments) {
+Email.send = function Email(to, subject, body, subhead, cc, bcc, from, attachments, webhook) {
   var payload = {}
   payload.to = to
   payload.subject = subject
@@ -165,7 +165,7 @@ Email.send = function Email(to, subject, body, subhead, cc, bcc, from, attachmen
 		'payload': JSON.stringify(payload)
 	};
 //  Logger.log(payload)
-  var results = UrlFetchApp.fetch("https://prod-12.westus.logic.azure.com:443/workflows/7db537186ff941d79ef53237b243ad4a/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=aniPuOZWqRSxgYpwit_f4vaP87JbfoqEjKPPatufXms", options)
+  var results = UrlFetchApp.fetch(webhook, options)
 }
 
 function createBody(settingsObj, rowValues){
@@ -237,13 +237,13 @@ function dateFormat(dateFormatArray, formTable, contents ){
 function getSettings(settings){
   		var scriptProperties = PropertiesService.getScriptProperties()
         if (settings){
-        scriptProperties.setProperties(settings)
+          scriptProperties.setProperties(settings, true)
         }
         return      scriptProperties.getProperties()
 }
-
-
-
+function test(){
+Logger.log(getSettings({"a":"B"}))
+}
 
         function loadStatusCols(settingsObj, formTable) {
           var statusCols = {}

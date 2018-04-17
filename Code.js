@@ -1,4 +1,4 @@
-// TODO: Cleanup, add section logic, switch children and tags to batch processing
+// TODO: Cleanup, add section logic, switch children and tags to batch processing, append row to sheet
 // Require Moment from Apps Script Libraries
 // Project Key = MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
 var moment = Moment.moment
