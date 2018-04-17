@@ -36,37 +36,37 @@ function onOpen() {
 }
 
 function showDialog() {
-  var ui = HtmlService.createTemplateFromFile('Dialog')
-      .evaluate()
-      .setWidth(700)
-      .setHeight(600)
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
-  SpreadsheetApp.getUi().showModalDialog(ui, "Installation Settings");
+    var ui = HtmlService.createTemplateFromFile('Dialog')
+        .evaluate()
+        .setWidth(700)
+        .setHeight(600)
+        .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+    SpreadsheetApp.getUi().showModalDialog(ui, "Installation Settings");
 }
 
 
 
-function buildSettings(){
-  var scriptProperties = PropertiesService.getScriptProperties();
-scriptProperties.setProperties({
-  settingsTemplate: "1fqFoBN1T_T78ME4XalCddEIosqFIghM9San3p6Fe5Ag",
-  settingsName: "SETTINGS"
-});
-Logger.log(scriptProperties.getProperties())
+function buildSettings() {
+    var scriptProperties = PropertiesService.getScriptProperties();
+    scriptProperties.setProperties({
+        settingsTemplate: "1fqFoBN1T_T78ME4XalCddEIosqFIghM9San3p6Fe5Ag",
+        settingsName: "SETTINGS"
+    });
+    Logger.log(scriptProperties.getProperties())
     var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-    
+
     loadSettings(activeSpreadsheet, settingsName)
     var sheet = activeSpreadsheet.getSheetByName(settingsName)
     var range = sheet.getActiveRange()
     var protection = sheet.protect()
     activeSpreadsheet.setNamedRange(settingsName, range)
     protection.setWarningOnly(true)
-//function showSidebar() {
- var html = HtmlService.createHtmlOutputFromFile('page')
-     .setTitle('My custom sidebar')
-     .setWidth(300);
- SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-     .showSidebar(html);
+    //function showSidebar() {
+    var html = HtmlService.createHtmlOutputFromFile('page')
+        .setTitle('My custom sidebar')
+        .setWidth(300);
+    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+        .showSidebar(html);
 }
 
 

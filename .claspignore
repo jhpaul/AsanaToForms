@@ -1,4 +1,7 @@
 **/
 node_modules/**
+sheets-addon/**
 import.js
 package-lock.json
+.gitignore
+.vs
