@@ -5,3 +5,4 @@ import.js
 package-lock.json
 .gitignore
 .vs
+.gitattributes
