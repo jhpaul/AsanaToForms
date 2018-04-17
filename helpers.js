@@ -182,7 +182,8 @@ Email.send = function Email(to, subject, body, subhead, cc, bcc, from, attachmen
     var results = UrlFetchApp.fetch(webhook, options)
 }
 
-function createBody(settingsObj, rowValues) {
+var Body = {}
+Body.create = function(settingsObj, rowValues) {
     asanaBody = ""
     htmlBody = ""
     //  Logger.log(rowValues)
@@ -205,10 +206,40 @@ function createBody(settingsObj, rowValues) {
 
         }
     }
-
+	Body.asana = asanaBody
+	Body.html = htmlBody
     return {
-        asana: asanaBody,
-        html: htmlBody
+        asana: Body.asana,
+        html: Body.html
+    }
+}
+
+
+function ifSplit(item, splitBy) {
+	if (item) {
+		if (item.indexOf(splitBy)>0){
+		item.split(splitBy).map(function(i){
+			return i.trim()
+		})}
+		else {
+			return item.trim()
+		}
+	}
+}
+function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
+    Logger.log( template)
+    if (template === undefined) {
+        return ""
+    }
+    if (typeof template === "number") {
+        template = template.toString()
+    }
+    if (JSON.stringify(template).indexOf("${") > 0) {
+        return MailMerge.createTextFromTemplate(template, rowValues, headers, dateFormat, dateTimeZone)
+    } else if (typeof template === "string") {
+        return template
+    } else {
+        return ""
     }
 }
 
@@ -287,7 +318,7 @@ function loadStatusCols(settingsObj, formTable) {
 
 function dueDate(dueDateDuration) {
     //  Logger.log(dueDateDuration)
-    if (dueDateDuration >= 0) {
+    if (typeof dueDateDuration === "number") {
         var date = moment()
         var dueDate = moment(date, "DD-MM-YYYY").add(dueDateDuration, 'days');
         Logger.log("Due Date: " + dueDate.format("YYYY-MM-DD"))

@@ -7,22 +7,7 @@ var moment = Moment.moment
 //var MailMerge = MailMerge.createTextFromTemplate(template, rowValues, headers, dateFormat, dateTimeZone)
 
 
-function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
-    Logger.log(typeof template)
-    if (template === undefined) {
-        return
-    }
-    if (typeof template === "number") {
-        template = template.toString()
-    }
-    if (JSON.stringify(template).indexOf("${") >= 0) {
-        return MailMerge.createTextFromTemplate(template, rowValues, headers, dateFormat, dateTimeZone)
-    } else if (typeof template === "string") {
-        return template
-    } else {
-        return ""
-    }
-}
+
 
 function onInstall(e) {
     onOpen(e);
@@ -103,61 +88,62 @@ function processEntries() {
 
 function process_(settingsObj, formTable, row) {
     try {
+        var Asana = {
+            taskName: "",
+            task: {},
+            response: {}
+        }
         runLog("Merging Row: " + row)
         var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
         var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
         var rowValues = valuesObj.rowValues
         var rowValuesArray = valuesObj.rowValuesArray
-        var task = {}
-        var taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["dateFormat"],
+ 
+        Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["dateFormat"],
             settingsObj["timeZone"]) //, dateFormat, dateTimeZone
-        task.name = taskName
+        Asana.task.name = Asana.taskName
         if (PROCESS_TAGS) {
-            task.tags = processTags(settingsObj, rowValues)
+            Asana.task.tags = processTags(settingsObj, rowValues)
         }
-        task.due_on = dueDate(settingsObj.dueDateDuration)
-        task.assignee = settingsObj["assignee"]
-        task.followers = settingsObj["followers"].split(",").map(function(item) {
-            return item.trim();
-        });
-        task.projects = settingsObj["project IDs"].split(",").map(function(item) {
-            return item.trim();
-        });
-        task.hearted = settingsObj["liked"]
-        task.assignee_status = settingsObj["status"]
-        var body = createBody(settingsObj, rowValues)
-        task.html_notes = body.asana
-        var taskResults = createAsanaTask(settingsObj, task)
+        Asana.task.due_on = dueDate(settingsObj.dueDateDuration)
+        Asana.task.assignee = settingsObj["assignee"]
+        Asana.task.followers = ifSplit(settingsObj.followers,",")
+
+        Asana.task.projects = ifSplit(settingsObj["project IDs"],",")
+        Asana.task.hearted = settingsObj["liked"]
+        Asana.task.assignee_status = settingsObj["status"]
+        Body.create(settingsObj, rowValues)
+        Asana.task.html_notes = Body.asana
+        Asana.response = createAsanaTask(settingsObj, Asana.task)
         if (PROCESS_CHILDREN) {
-            processChildren(settingsObj, rowValues, taskResults)
+            processChildren(settingsObj, rowValues, Asana.response)
         }
-        //        Logger.log(taskResults.result)
+        //        Logger.log(Asana.response.result)
         //        alertTeam(title, text, url, id, webhookURI)
         if (settingsObj["alertTeam"] === true) {
-            alertTeam("Summer 2018: " + taskResults.result["name"], taskResults.result["notes"], taskResults["url"],
-                taskResults.result["id"].toString(), settingsObj["teamsWebHookUri"])
+            alertTeam("Summer 2018: " + Asana.response.result["name"], Asana.response.result["notes"], Asana.response["url"],
+                Asana.response.result["id"].toString(), settingsObj["teamsWebHookUri"])
         }
         //      Build Final Body
-        if (settingsObj["emailHeader"]) {
-            var prefix = merge(settingsObj["emailHeader"], rowValuesArray, formTable.headerArray, settingsObj[
+        Body.prefix = merge(settingsObj["emailHeader"], rowValuesArray, formTable.headerArray, settingsObj[
                 "dateFormat"], settingsObj["timeZone"])
-        }
-        if (settingsObj["emailFooter"]) {
-            var suffix = merge(settingsObj["emailFooter"], rowValuesArray, formTable.headerArray, settingsObj[
+        
+        Body.suffix = merge(settingsObj["emailFooter"], rowValuesArray, formTable.headerArray, settingsObj[
                 "dateFormat"], settingsObj["timeZone"])
-        }
-        body.html = prefix + '<a href="' + taskResults["url"] + '">' + taskResults["url"] + '</a><br><br>' + body.html +
-            suffix
-        Logger.log(body.html)
+        
+        Body.html = Body.prefix + '<a href="' + Asana.response["url"] + '">' + Asana.response["url"] + '</a><br><br>' + Body.html +
+            Body.suffix
+        // Logger.log(Body.html)
         //        Send Email
         if (settingsObj.emailEnabled) {
-            buildEmail(settingsObj, rowValuesArray, formTable, body.html)
+            buildEmail(settingsObj, rowValuesArray, formTable, Body.html)
         }
         if (UPDATE_STATUS) {
-            setStatus(settingsObj, formTable.sheet, formTable.cols, row, taskResults)
+            setStatus(settingsObj, formTable.sheet, formTable.cols, row, Asana.response)
         }
         //        
     } catch (e) {
         errorLog(e)
     }
 }
+
