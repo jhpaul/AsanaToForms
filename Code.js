@@ -1,4 +1,14 @@
-// TODO: Cleanup, add section logic, switch children and tags to batch processing, append row to sheet
+/****************************************************************** 
+### TODO: 
+- Cleanup, add section logic
+- switch children and tags to batch processing
+- append row to sheet
+- allow replaceText to take multiple repeats of the same column 
+- dateFormat should not error when given the same column twice
+******************************************************************/
+
+
+
 // Require Moment from Apps Script Libraries
 // Project Key = MHMchiX6c1bwSqGM1PZiW_PxhMjh3Sh48
 var moment = Moment.moment
