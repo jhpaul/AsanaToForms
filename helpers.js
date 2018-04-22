@@ -88,6 +88,7 @@ function buildEmail(settingsObj, rowValuesArray, formTable, body, attachments) {
 
 function search(nameKey, myArray) {
     for (var i = 0; i < myArray.length; i++) {
+      Logger.log([myArray[i].name, nameKey])
         if (myArray[i].name === nameKey) {
             return myArray[i];
         }
@@ -247,20 +248,32 @@ function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
 function dateFormat(dateFormatArray, formTable, contents) {
     var rowValues = {}
     var rowValuesArray = []
+    Logger.log(dateFormatArray)
     for (var each in contents) {
-        //    Logger.log(each)
+//    Logger.log(each)
         var headerVal = formTable.headerKey[each].trim()
         var cell = contents[each]
-        //            runLog("Processing "+dateFormatArray.length+" custom dates")
-        var found = search(headerVal, dateFormatArray)
-        if (found) {
-            //              Logger.log("Found: "+JSON.stringify(found))
-            var date = moment(cell).format(found.dateFormat)
-            //              Logger.log(date)
-            //                rowValues[headerVal] = date
-            //                rowValuesArray.push(date)
-            //              runLog("Tag ID for "+each.name+ " is "+each.id)
-        } else {
+//            runLog("Processing "+dateFormatArray.length+" custom dates")
+//        Logger.log([headerVal, dateFormatArray, cell])
+        for (var header in dateFormatArray){
+          if (headerVal === dateFormatArray[header].columnName && cell){
+            Logger.log(["MATCH", dateFormatArray[header].columnName, cell])
+            var date = moment(cell).format(dateFormatArray[header].dateFormat)
+                rowValues[headerVal] = date
+                rowValuesArray.push(date)
+          } else {
+            rowValues[headerVal] = cell
+            rowValuesArray.push(cell)
+        }
+        
+//        if (found) {
+//              Logger.log("Found: "+JSON.stringify(found))
+//            var date = moment(cell).format(found.dateFormat)
+//              Logger.log(date)
+//                rowValues[headerVal] = date
+//                rowValuesArray.push(date)
+////              runLog("Tag ID for "+each.name+ " is "+each.id)
+//        } else {
 
             //            dateFormatArray.forEach( function (object, cell, headerVal) {
             //              Logger.log(object)
@@ -271,9 +284,9 @@ function dateFormat(dateFormatArray, formTable, contents) {
             //                rowValues[headerVal] = date
             //                rowValuesArray.push(date)
 
-
-            rowValues[headerVal] = contents[each]
-            rowValuesArray.push(contents[each])
+//
+//            rowValues[headerVal] = contents[each]
+//            rowValuesArray.push(contents[each])
         }
     }
 
@@ -282,7 +295,42 @@ function dateFormat(dateFormatArray, formTable, contents) {
 
     return {
         rowValues: rowValues,
-        rowValuesArray: rowValuesArray
+        rowValuesArray: rowValuesArray,
+        formTable: formTable
+    }
+}
+
+function replaceText (replaceTextArray, valuesObj) {
+    var rowValues = {}
+    var rowValuesArray = []
+//    Logger.log(valuesObj)
+    for (var each in valuesObj.rowValuesArray) {
+        var headerVal = valuesObj.formTable.headerKey[each].trim()
+        var cell = valuesObj.rowValuesArray[each]
+        Logger.log([headerVal, cell])
+        for (var header in replaceTextArray){
+          if (headerVal === replaceTextArray[header].columnName){
+            Logger.log(["MATCH", replaceTextArray[header].columnName, cell])
+            if (cell) {
+              cell = cell.split(replaceTextArray[header].find).join(replaceTextArray[header].replace)
+                rowValues[headerVal] = cell
+                rowValuesArray.push(cell)
+            } }
+          else {
+            rowValues[headerVal] = cell
+            rowValuesArray.push(cell)
+        }
+        }
+    }
+
+
+
+
+
+    return {
+        rowValues: rowValues,
+        rowValuesArray: rowValuesArray,
+        formTable: valuesObj.formTable
     }
 }
 

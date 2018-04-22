@@ -96,6 +96,8 @@ function process_(settingsObj, formTable, row) {
         runLog("Merging Row: " + row)
         var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
         var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
+        valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]),valuesObj)
+        Logger.log(valuesObj)
         var rowValues = valuesObj.rowValues
         var rowValuesArray = valuesObj.rowValuesArray
  
