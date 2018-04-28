@@ -1,15 +1,10 @@
 function loadSettings(activeSpreadsheet, settingsSheetName, settingsTemplateId) {
     ///// Load Settings Sheet
-    //  var settingsSheetName = "settings"
-    //  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
     var settings = activeSpreadsheet.getSheetByName(settingsSheetName)
     if (settings === null) {
         var set = SpreadsheetApp.openById(settingsTemplateId)
         var settings = set.getSheets()[0].copyTo(activeSpreadsheet).setName(settingsSheetName)
-
-
     }
-
     //        Logger.log(settings)
     var setLength = settings.getLastRow()
     //    Logger.log("last row " + setLength)
@@ -32,6 +27,30 @@ function loadSettings(activeSpreadsheet, settingsSheetName, settingsTemplateId) 
     PREMIUM_FIELDS = JSON.parse(settingsObj.premiumFields)
     return settingsObj
 }
+
+function buildSettings() {
+    var scriptProperties = PropertiesService.getScriptProperties();
+    scriptProperties.setProperties({
+        settingsTemplate: "1fqFoBN1T_T78ME4XalCddEIosqFIghM9San3p6Fe5Ag",
+        settingsName: "SETTINGS"
+    });
+    Logger.log(scriptProperties.getProperties())
+    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+
+    loadSettings(activeSpreadsheet, settingsName)
+    var sheet = activeSpreadsheet.getSheetByName(settingsName)
+    var range = sheet.getActiveRange()
+    var protection = sheet.protect()
+    activeSpreadsheet.setNamedRange(settingsName, range)
+    protection.setWarningOnly(true)
+    //function showSidebar() {
+    var html = HtmlService.createHtmlOutputFromFile('page')
+        .setTitle('My custom sidebar')
+        .setWidth(300);
+    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+        .showSidebar(html);
+}
+
 
 function loadFormTable(settingsObj, activeSpreadsheet) {
     var sheet = activeSpreadsheet.getSheetByName(settingsObj["responseSheet"])
@@ -88,7 +107,7 @@ function buildEmail(settingsObj, rowValuesArray, formTable, body, attachments) {
 
 function search(nameKey, myArray) {
     for (var i = 0; i < myArray.length; i++) {
-      Logger.log([myArray[i].name, nameKey])
+        Logger.log([myArray[i].name, nameKey])
         if (myArray[i].name === nameKey) {
             return myArray[i];
         }
@@ -207,8 +226,8 @@ Body.create = function(settingsObj, rowValues) {
 
         }
     }
-	Body.asana = asanaBody
-	Body.html = htmlBody
+    Body.asana = asanaBody
+    Body.html = htmlBody
     return {
         asana: Body.asana,
         html: Body.html
@@ -217,18 +236,19 @@ Body.create = function(settingsObj, rowValues) {
 
 
 function ifSplit(item, splitBy) {
-	if (item) {
-		if (item.indexOf(splitBy)>0){
-		item.split(splitBy).map(function(i){
-			return i.trim()
-		})}
-		else {
-			return item.trim()
-		}
-	}
+    if (item) {
+        if (item.indexOf(splitBy) > 0) {
+            item.split(splitBy).map(function(i) {
+                return i.trim()
+            })
+        } else {
+            return item.trim()
+        }
+    }
 }
+
 function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
-    Logger.log( template)
+    Logger.log(template)
     if (template === undefined) {
         return ""
     }
@@ -250,30 +270,30 @@ function dateFormat(dateFormatArray, formTable, contents) {
     var rowValuesArray = []
     Logger.log(dateFormatArray)
     for (var each in contents) {
-//    Logger.log(each)
+        //    Logger.log(each)
         var headerVal = formTable.headerKey[each].trim()
         var cell = contents[each]
-//            runLog("Processing "+dateFormatArray.length+" custom dates")
-//        Logger.log([headerVal, dateFormatArray, cell])
-        for (var header in dateFormatArray){
-          if (headerVal === dateFormatArray[header].columnName && cell){
-            Logger.log(["MATCH", dateFormatArray[header].columnName, cell])
-            var date = moment(cell).format(dateFormatArray[header].dateFormat)
+        //            runLog("Processing "+dateFormatArray.length+" custom dates")
+        //        Logger.log([headerVal, dateFormatArray, cell])
+        for (var header in dateFormatArray) {
+            if (headerVal === dateFormatArray[header].columnName && cell) {
+                Logger.log(["MATCH", dateFormatArray[header].columnName, cell])
+                var date = moment(cell).format(dateFormatArray[header].dateFormat)
                 rowValues[headerVal] = date
                 rowValuesArray.push(date)
-          } else {
-            rowValues[headerVal] = cell
-            rowValuesArray.push(cell)
-        }
-        
-//        if (found) {
-//              Logger.log("Found: "+JSON.stringify(found))
-//            var date = moment(cell).format(found.dateFormat)
-//              Logger.log(date)
-//                rowValues[headerVal] = date
-//                rowValuesArray.push(date)
-////              runLog("Tag ID for "+each.name+ " is "+each.id)
-//        } else {
+            } else {
+                rowValues[headerVal] = cell
+                rowValuesArray.push(cell)
+            }
+
+            //        if (found) {
+            //              Logger.log("Found: "+JSON.stringify(found))
+            //            var date = moment(cell).format(found.dateFormat)
+            //              Logger.log(date)
+            //                rowValues[headerVal] = date
+            //                rowValuesArray.push(date)
+            ////              runLog("Tag ID for "+each.name+ " is "+each.id)
+            //        } else {
 
             //            dateFormatArray.forEach( function (object, cell, headerVal) {
             //              Logger.log(object)
@@ -284,9 +304,9 @@ function dateFormat(dateFormatArray, formTable, contents) {
             //                rowValues[headerVal] = date
             //                rowValuesArray.push(date)
 
-//
-//            rowValues[headerVal] = contents[each]
-//            rowValuesArray.push(contents[each])
+            //
+            //            rowValues[headerVal] = contents[each]
+            //            rowValuesArray.push(contents[each])
         }
     }
 
@@ -300,26 +320,26 @@ function dateFormat(dateFormatArray, formTable, contents) {
     }
 }
 
-function replaceText (replaceTextArray, valuesObj) {
+function replaceText(replaceTextArray, valuesObj) {
     var rowValues = {}
     var rowValuesArray = []
-//    Logger.log(valuesObj)
+    //    Logger.log(valuesObj)
     for (var each in valuesObj.rowValuesArray) {
         var headerVal = valuesObj.formTable.headerKey[each].trim()
         var cell = valuesObj.rowValuesArray[each]
         Logger.log([headerVal, cell])
-        for (var header in replaceTextArray){
-          if (headerVal === replaceTextArray[header].columnName){
-            Logger.log(["MATCH", replaceTextArray[header].columnName, cell])
-            if (cell) {
-              cell = cell.split(replaceTextArray[header].find).join(replaceTextArray[header].replace)
+        for (var header in replaceTextArray) {
+            if (headerVal === replaceTextArray[header].columnName) {
+                Logger.log(["MATCH", replaceTextArray[header].columnName, cell])
+                if (cell) {
+                    cell = cell.split(replaceTextArray[header].find).join(replaceTextArray[header].replace)
+                    rowValues[headerVal] = cell
+                    rowValuesArray.push(cell)
+                }
+            } else {
                 rowValues[headerVal] = cell
                 rowValuesArray.push(cell)
-            } }
-          else {
-            rowValues[headerVal] = cell
-            rowValuesArray.push(cell)
-        }
+            }
         }
     }
 
@@ -427,4 +447,40 @@ function getRowCells_(sheet, cols, row) {
         errorLog(e)
     }
 
+}
+
+function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
+    var Asana = {
+        taskName: "",
+        task: {},
+        response: {}
+    }
+    // runLog("Merging Row: " + row)
+    // var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
+    // var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
+    // valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]),valuesObj)
+    // Logger.log(valuesObj)
+    // var rowValues = valuesObj.rowValues
+    // var rowValuesArray = valuesObj.rowValuesArray
+
+    Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["dateFormat"],
+        settingsObj["timeZone"]) //, dateFormat, dateTimeZone
+    Asana.task.name = Asana.taskName
+    if (PROCESS_TAGS) {
+        Asana.task.tags = processTags(settingsObj, rowValues)
+    }
+    Asana.task.due_on = dueDate(settingsObj.dueDateDuration)
+    Asana.task.assignee = settingsObj["assignee"]
+    Asana.task.followers = ifSplit(settingsObj.followers, ",")
+
+    Asana.task.projects = ifSplit(settingsObj["project IDs"], ",")
+    Asana.task.hearted = settingsObj["liked"]
+    Asana.task.assignee_status = settingsObj["status"]
+    Body.create(settingsObj, rowValues)
+    Asana.task.html_notes = Body.asana
+    Asana.response = createAsanaTask(settingsObj, Asana.task)
+    if (settingsObj.processChildren) {
+        processChildren(settingsObj, rowValues, Asana.response)
+    }
+    return Asana
 }

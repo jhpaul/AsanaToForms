@@ -33,7 +33,8 @@ function onOpen() {
         .addItem('Settings', 'showDialog').addToUi();
 }
 
-function showDialog() {clon
+function showDialog() {
+    clon
     var ui = HtmlService.createTemplateFromFile('Dialog')
         .evaluate()
         .setWidth(700)
@@ -41,35 +42,6 @@ function showDialog() {clon
         .setSandboxMode(HtmlService.SandboxMode.IFRAME);
     SpreadsheetApp.getUi().showModalDialog(ui, "Installation Settings");
 }
-
-
-
-function buildSettings() {
-    var scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.setProperties({
-        settingsTemplate: "1fqFoBN1T_T78ME4XalCddEIosqFIghM9San3p6Fe5Ag",
-        settingsName: "SETTINGS"
-    });
-    Logger.log(scriptProperties.getProperties())
-    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-
-    loadSettings(activeSpreadsheet, settingsName)
-    var sheet = activeSpreadsheet.getSheetByName(settingsName)
-    var range = sheet.getActiveRange()
-    var protection = sheet.protect()
-    activeSpreadsheet.setNamedRange(settingsName, range)
-    protection.setWarningOnly(true)
-    //function showSidebar() {
-    var html = HtmlService.createHtmlOutputFromFile('page')
-        .setTitle('My custom sidebar')
-        .setWidth(300);
-    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-        .showSidebar(html);
-}
-
-
-
-// Set multiple script properties in one call.
 
 
 function processEntries() {
@@ -84,7 +56,7 @@ function processEntries() {
         for (var index in statusCols.statusRangeValues) {
             if (statusCols.statusRangeValues[index] == "" && statusCols.verificationRangeValues[index] != "") {
                 var rowInt = parseInt(index) + 2
-                process_(settingsObj, formTable, rowInt)
+                process(settingsObj, formTable, rowInt)
                 runLog("Sucessfully Merged Row: " + rowInt)
                 mergeCount++
             }
@@ -99,40 +71,16 @@ function processEntries() {
     }
 }
 
-function process_(settingsObj, formTable, row) {
+function process(settingsObj, formTable, row) {
     try {
-        var Asana = {
-            taskName: "",
-            task: {},
-            response: {}
-        }
         runLog("Merging Row: " + row)
         var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
         var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
-        valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]),valuesObj)
-        Logger.log(valuesObj)
+        valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]), valuesObj)
+        // Logger.log(valuesObj)
         var rowValues = valuesObj.rowValues
         var rowValuesArray = valuesObj.rowValuesArray
- 
-        Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["dateFormat"],
-            settingsObj["timeZone"]) //, dateFormat, dateTimeZone
-        Asana.task.name = Asana.taskName
-        if (PROCESS_TAGS) {
-            Asana.task.tags = processTags(settingsObj, rowValues)
-        }
-        Asana.task.due_on = dueDate(settingsObj.dueDateDuration)
-        Asana.task.assignee = settingsObj["assignee"]
-        Asana.task.followers = ifSplit(settingsObj.followers,",")
-
-        Asana.task.projects = ifSplit(settingsObj["project IDs"],",")
-        Asana.task.hearted = settingsObj["liked"]
-        Asana.task.assignee_status = settingsObj["status"]
-        Body.create(settingsObj, rowValues)
-        Asana.task.html_notes = Body.asana
-        Asana.response = createAsanaTask(settingsObj, Asana.task)
-        if (PROCESS_CHILDREN) {
-            processChildren(settingsObj, rowValues, Asana.response)
-        }
+        var Asana = asanaProcess(settingsObj, formTable, rowValues, rowValuesArray)
         //        Logger.log(Asana.response.result)
         //        alertTeam(title, text, url, id, webhookURI)
         if (settingsObj["alertTeam"] === true) {
@@ -141,11 +89,11 @@ function process_(settingsObj, formTable, row) {
         }
         //      Build Final Body
         Body.prefix = merge(settingsObj["emailHeader"], rowValuesArray, formTable.headerArray, settingsObj[
-                "dateFormat"], settingsObj["timeZone"])
-        
+            "dateFormat"], settingsObj["timeZone"])
+
         Body.suffix = merge(settingsObj["emailFooter"], rowValuesArray, formTable.headerArray, settingsObj[
-                "dateFormat"], settingsObj["timeZone"])
-        
+            "dateFormat"], settingsObj["timeZone"])
+
         Body.html = Body.prefix + '<a href="' + Asana.response["url"] + '">' + Asana.response["url"] + '</a><br><br>' + Body.html +
             Body.suffix
         // Logger.log(Body.html)
@@ -153,7 +101,7 @@ function process_(settingsObj, formTable, row) {
         if (settingsObj.emailEnabled) {
             buildEmail(settingsObj, rowValuesArray, formTable, Body.html)
         }
-        if (UPDATE_STATUS) {
+        if (settingsObj.updateStatus) {
             setStatus(settingsObj, formTable.sheet, formTable.cols, row, Asana.response)
         }
         //        
@@ -161,4 +109,3 @@ function process_(settingsObj, formTable, row) {
         errorLog(e)
     }
 }
-
