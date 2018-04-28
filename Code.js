@@ -34,7 +34,6 @@ function onOpen() {
 }
 
 function showDialog() {
-    clon
     var ui = HtmlService.createTemplateFromFile('Dialog')
         .evaluate()
         .setWidth(700)
