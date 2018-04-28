@@ -7,6 +7,7 @@
 - replace range in google sheet (intake form)
 - allow replaceText to take multiple repeats of the same column 
 - dateFormat should not error when given the same column twice
+- add additional projects to children 
 ******************************************************************/
 
 
