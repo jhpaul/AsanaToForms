@@ -1,8 +1,10 @@
 /****************************************************************** 
 ### TODO: 
-- Cleanup, add section logic
+- Cleanup
+- add section logic
 - switch children and tags to batch processing
 - append row to sheet
+- replace range in google sheet (intake form)
 - allow replaceText to take multiple repeats of the same column 
 - dateFormat should not error when given the same column twice
 ******************************************************************/
@@ -30,7 +32,7 @@ function onOpen() {
         .addItem('Settings', 'showDialog').addToUi();
 }
 
-function showDialog() {
+function showDialog() {clon
     var ui = HtmlService.createTemplateFromFile('Dialog')
         .evaluate()
         .setWidth(700)
