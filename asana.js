@@ -1,3 +1,42 @@
+function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
+    var Asana = {
+        taskName: "",
+        task: {},
+        response: {}
+    }
+    // runLog("Merging Row: " + row)
+    // var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
+    // var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
+    // valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]),valuesObj)
+    // Logger.log(valuesObj)
+    // var rowValues = valuesObj.rowValues
+    // var rowValuesArray = valuesObj.rowValuesArray
+
+    Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["dateFormat"],
+        settingsObj["timeZone"]) //, dateFormat, dateTimeZone
+    Asana.task.name = Asana.taskName
+    if (PROCESS_TAGS) {
+        Asana.task.tags = processTags(settingsObj, rowValues)
+    }
+    Asana.task.due_on = dueDate(settingsObj.dueDateDuration)
+    Asana.task.assignee = settingsObj["assignee"]
+    Asana.task.followers = ifSplit(settingsObj.followers, ",")
+
+    Asana.task.projects = ifSplit(settingsObj["project IDs"], ",")
+    Asana.task.hearted = settingsObj["liked"]
+    Asana.task.assignee_status = settingsObj["status"]
+    Body.create(settingsObj, rowValues)
+    Asana.task.html_notes = Body.asana
+    Asana.response = createAsanaTask(settingsObj, Asana.task)
+    if (settingsObj.processChildren) {
+        processChildren(settingsObj, rowValues, Asana.response)
+    }
+    return Asana
+}
+
+
+
+
 ///////////////Task Object
 //{
 //  "name": "",

@@ -8,6 +8,8 @@
 - allow replaceText to take multiple repeats of the same column 
 - dateFormat should not error when given the same column twice
 - add additional projects to children 
+- trim all fields as they come in
+- refactor datereplaclement and textreplacement
 ******************************************************************/
 
 
@@ -74,9 +76,7 @@ function process(settingsObj, formTable, row) {
     try {
         runLog("Merging Row: " + row)
         var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
-        var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
-        valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]), valuesObj)
-        // Logger.log(valuesObj)
+        var valuesObj = textFormat(JSON.parse(settingsObj["dateFormatArray"]), JSON.parse(settingsObj["replaceTextArray"]), formTable, contents)
         var rowValues = valuesObj.rowValues
         var rowValuesArray = valuesObj.rowValuesArray
         var Asana = asanaProcess(settingsObj, formTable, rowValues, rowValuesArray)

@@ -265,7 +265,7 @@ function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
 }
 
 
-function dateFormat(dateFormatArray, formTable, contents) {
+function textFormat(dateFormatArray, replaceTextArray, formTable, contents) {
     var rowValues = {}
     var rowValuesArray = []
     Logger.log(dateFormatArray)
@@ -273,18 +273,26 @@ function dateFormat(dateFormatArray, formTable, contents) {
         //    Logger.log(each)
         var headerVal = formTable.headerKey[each].trim()
         var cell = contents[each]
+        if (typeof cell === "string") { cell = cell.trim() }
+        if (cell < 10000 && (headerVal.toLowerCase() === "zip" || headerVal.toLowerCase() === "zip code" || headerVal.toLowerCase() === "zipcode") ) {cell = "0"+cell}
+        Logger.log(cell)
         //            runLog("Processing "+dateFormatArray.length+" custom dates")
         //        Logger.log([headerVal, dateFormatArray, cell])
+        
         for (var header in dateFormatArray) {
+          
+          
             if (headerVal === dateFormatArray[header].columnName && cell) {
                 Logger.log(["MATCH", dateFormatArray[header].columnName, cell])
                 var date = moment(cell).format(dateFormatArray[header].dateFormat)
-                rowValues[headerVal] = date
-                rowValuesArray.push(date)
-            } else {
-                rowValues[headerVal] = cell
-                rowValuesArray.push(cell)
-            }
+                cell = date
+//                rowValues[headerVal] = date
+//                rowValuesArray.push(date)
+            } 
+//          else {
+//                rowValues[headerVal] = cell
+//                rowValuesArray.push(cell)
+//            }
 
             //        if (found) {
             //              Logger.log("Found: "+JSON.stringify(found))
@@ -308,23 +316,40 @@ function dateFormat(dateFormatArray, formTable, contents) {
             //            rowValues[headerVal] = contents[each]
             //            rowValuesArray.push(contents[each])
         }
+        for (var header in replaceTextArray) {
+            if (headerVal === replaceTextArray[header].columnName) {
+                Logger.log(["MATCH", replaceTextArray[header].columnName, cell])
+                if (cell) {
+                    cell = cell.split(replaceTextArray[header].find).join(replaceTextArray[header].replace)
+//                    rowValues[headerVal] = cell
+//                    rowValuesArray.push(cell)
+                }
+            } 
+//          else {
+//                rowValues[headerVal] = cell
+//                rowValuesArray.push(cell)
+//            }
+         }
+                rowValues[headerVal] = cell
+                rowValuesArray.push(cell)
     }
 
 
-
-
-    return {
+  var valuesObj = {
         rowValues: rowValues,
         rowValuesArray: rowValuesArray,
         formTable: formTable
     }
+//Logger.log(valuesObj)
+    return valuesObj
 }
 
 function replaceText(replaceTextArray, valuesObj) {
     var rowValues = {}
     var rowValuesArray = []
-    //    Logger.log(valuesObj)
+//    Logger.log(valuesObj)
     for (var each in valuesObj.rowValuesArray) {
+//      Logger.log(valuesObj.formTable.headerKey[each])
         var headerVal = valuesObj.formTable.headerKey[each].trim()
         var cell = valuesObj.rowValuesArray[each]
         Logger.log([headerVal, cell])
@@ -347,11 +372,13 @@ function replaceText(replaceTextArray, valuesObj) {
 
 
 
-    return {
+  var obj = {
         rowValues: rowValues,
         rowValuesArray: rowValuesArray,
         formTable: valuesObj.formTable
     }
+//Logger.log(valuesObj)
+    return obj
 }
 
 function getSettings(settings) {
@@ -449,38 +476,3 @@ function getRowCells_(sheet, cols, row) {
 
 }
 
-function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
-    var Asana = {
-        taskName: "",
-        task: {},
-        response: {}
-    }
-    // runLog("Merging Row: " + row)
-    // var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
-    // var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
-    // valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]),valuesObj)
-    // Logger.log(valuesObj)
-    // var rowValues = valuesObj.rowValues
-    // var rowValuesArray = valuesObj.rowValuesArray
-
-    Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["dateFormat"],
-        settingsObj["timeZone"]) //, dateFormat, dateTimeZone
-    Asana.task.name = Asana.taskName
-    if (PROCESS_TAGS) {
-        Asana.task.tags = processTags(settingsObj, rowValues)
-    }
-    Asana.task.due_on = dueDate(settingsObj.dueDateDuration)
-    Asana.task.assignee = settingsObj["assignee"]
-    Asana.task.followers = ifSplit(settingsObj.followers, ",")
-
-    Asana.task.projects = ifSplit(settingsObj["project IDs"], ",")
-    Asana.task.hearted = settingsObj["liked"]
-    Asana.task.assignee_status = settingsObj["status"]
-    Body.create(settingsObj, rowValues)
-    Asana.task.html_notes = Body.asana
-    Asana.response = createAsanaTask(settingsObj, Asana.task)
-    if (settingsObj.processChildren) {
-        processChildren(settingsObj, rowValues, Asana.response)
-    }
-    return Asana
-}
