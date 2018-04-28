@@ -4,3 +4,4 @@ package-lock.json
 .vs
 .vscode
 testSheet.html
+.clasp.json
