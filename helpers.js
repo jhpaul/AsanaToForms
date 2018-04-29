@@ -1,57 +1,3 @@
-function loadSettings(activeSpreadsheet, settingsSheetName, settingsTemplateId) {
-    ///// Load Settings Sheet
-    var settings = activeSpreadsheet.getSheetByName(settingsSheetName)
-    if (settings === null) {
-        var set = SpreadsheetApp.openById(settingsTemplateId)
-        var settings = set.getSheets()[0].copyTo(activeSpreadsheet).setName(settingsSheetName)
-    }
-    //        Logger.log(settings)
-    var setLength = settings.getLastRow()
-    //    Logger.log("last row " + setLength)
-    var settingsRange = settings.getRange(1, 1, setLength, 2)
-    //        Logger.log(settings.getRange(1,1,setLength, settings.getLastColumn()).getValues())
-    var settingsValues = settingsRange.getValues()
-    //		Logger.log(settingsValues)
-    var settingsObj = {}
-    for (var each in settingsValues) {
-        var key = settingsValues[each][0]
-        var value = settingsValues[each][1]
-        if (value !== "") {
-            settingsObj[key] = value
-        }
-    }
-    PERSONAL_ACCESS_TOKEN = settingsObj.personalAccessToken; // Put your unique Personal access token here
-    WORKSPACE_ID = settingsObj.workspaceId; // Put in the main workspace key you want to access (you can copy from asana web address)
-    ASSIGNEE = settingsObj.defaultAssignee; // put in the e-mail addresss you use to log into asana
-    PREMIUM = settingsObj.asanaPremium
-    PREMIUM_FIELDS = JSON.parse(settingsObj.premiumFields)
-    return settingsObj
-}
-
-function buildSettings() {
-    var scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.setProperties({
-        settingsTemplate: "1fqFoBN1T_T78ME4XalCddEIosqFIghM9San3p6Fe5Ag",
-        settingsName: "SETTINGS"
-    });
-    Logger.log(scriptProperties.getProperties())
-    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-
-    loadSettings(activeSpreadsheet, settingsName)
-    var sheet = activeSpreadsheet.getSheetByName(settingsName)
-    var range = sheet.getActiveRange()
-    var protection = sheet.protect()
-    activeSpreadsheet.setNamedRange(settingsName, range)
-    protection.setWarningOnly(true)
-    //function showSidebar() {
-    var html = HtmlService.createHtmlOutputFromFile('page')
-        .setTitle('My custom sidebar')
-        .setWidth(300);
-    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-        .showSidebar(html);
-}
-
-
 function loadFormTable(settingsObj, activeSpreadsheet) {
     var sheet = activeSpreadsheet.getSheetByName(settingsObj["responseSheet"])
     // Load Headers
@@ -72,19 +18,6 @@ function loadFormTable(settingsObj, activeSpreadsheet) {
         rows: rows,
         cols: cols,
         headerArray: headerArray
-    }
-}
-
-function run() {
-    processEntries()
-}
-
-function emailSplitJoin(value, split, join) {
-    //  Logger.log(value)
-    if (value) {
-        return value.split(split).join(join)
-    } else {
-        return null
     }
 }
 
@@ -381,19 +314,6 @@ function replaceText(replaceTextArray, valuesObj) {
     return obj
 }
 
-function getSettings(settings) {
-    var scriptProperties = PropertiesService.getScriptProperties()
-    if (settings) {
-        scriptProperties.setProperties(settings, true)
-    }
-    return scriptProperties.getProperties()
-}
-
-function test() {
-    Logger.log(getSettings({
-        "a": "B"
-    }))
-}
 
 function loadStatusCols(settingsObj, formTable) {
     var statusCols = {}

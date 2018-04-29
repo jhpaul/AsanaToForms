@@ -8,8 +8,9 @@
 - allow replaceText to take multiple repeats of the same column 
 - dateFormat should not error when given the same column twice
 - add additional projects to children 
-- trim all fields as they come in
+- [x] trim all fields as they come in
 - refactor datereplaclement and textreplacement
+- [x] add installation options and default settings
 ******************************************************************/
 
 
@@ -25,18 +26,23 @@ var moment = Moment.moment
 
 
 function onInstall(e) {
+    Settings.install()
     onOpen(e);
 
 }
 
 function onOpen() {
-    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-        .createMenu('Asana Merge').addItem('Merge Now', 'processEntries')
-        .addItem('Settings', 'showDialog').addToUi();
+    var ui = SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+        ui.createMenu('Asana Forms').addItem('Process Now', 'processEntries')
+        .addSubMenu(
+            ui.createMenu('Advanced').addItem('Settings', 'showDialog')
+            .addItem('Install', 'installSettings')
+        ).addToUi();
 }
 
-function showDialog() {
-    var ui = HtmlService.createTemplateFromFile('Dialog')
+function showDialog(dialogTemplate) {
+    var dialogTemplate = "SettingsDialog.html"
+    var ui = HtmlService.createTemplateFromFile(dialogTemplate)
         .evaluate()
         .setWidth(700)
         .setHeight(600)
@@ -49,7 +55,8 @@ function processEntries() {
     try {
         runLog("Start Merge")
         var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-        var settingsObj = loadSettings(activeSpreadsheet, "SETTINGS")
+        var settings = loadSettings(activeSpreadsheet, "SETTINGS")
+        var settingsObj = settings.settingsObj
         var formTable = loadFormTable(settingsObj, activeSpreadsheet)
         var statusCols = loadStatusCols(settingsObj, formTable)
         //  Get and merge any row with no status value

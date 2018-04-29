@@ -26,25 +26,29 @@
     <cursor></cursor><div>
       <p>This allows you to adjust installation sttings</p>
       <div class="block" id="dialog-elements">
+      <form id="installSettings" >
       <div class="form-group" id="settings-block">
-        <? var data = getSettings(); var keys = Object.keys(data) ?>
+        <? var data = Settings.get(); var keys = Object.keys(data) ?>
 
         <? for (var i=0; i < keys.length; i++) { ?>
         <div class="input-group" id="input-group-<?= i+1 ?>">
             <label for="input"><?= keys[i] ?></label>
-            <input size="100" type="text" value="<?=data[keys[i]] ?>"><br>
+            <input name="<?= keys[i] ?>" size="100" type="text" value="<?=data[keys[i]] ?>"><br>
         </div>
         <? } ?>
       </div>
       <br>
       <div class="block" id="dialog-button-bar">
-          <button class="action" id="dialog-execute-button">Execute</button>
+          <button  class="action" id="dialog-execute-button">Execute</button>
           <button id="dialog-cancel-button" onclick="google.script.host.close()">Cancel</button>
       </div>
+    </form>
+
       <div id="dialog-status"></div>
+      
     </div>
 
     <!-- Use a templated HTML printing scriptlet to import JavaScript. -->
-    <?!= HtmlService.createHtmlOutputFromFile('DialogJavaScript').getContent(); ?>
+    <?!= HtmlService.createHtmlOutputFromFile('SettingsDialogJavaScript').getContent(); ?>
   </body>
 </html>

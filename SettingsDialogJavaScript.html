@@ -25,6 +25,34 @@
 
     // Call the server here to retrieve any information needed to build
     // the dialog, if necessary.
+
+    jQuery.fn.serializeObject = function() {
+  var arrayData, objectData;
+  arrayData = this.serializeArray();
+  objectData = {};
+
+  $.each(arrayData, function() {
+    var value;
+
+    if (this.value != null) {
+      value = this.value;
+    } else {
+      value = '';
+    }
+
+    if (objectData[this.name] != null) {
+      if (!objectData[this.name].push) {
+        objectData[this.name] = [objectData[this.name]];
+      }
+
+      objectData[this.name].push(value);
+    } else {
+      objectData[this.name] = value;
+    }
+  });
+
+  return objectData;
+};
   });
 
   /**
@@ -38,33 +66,35 @@
       var instSettingsObj = {}
     // Gather any information that needs to be sent to the server here.
     $('#settings-block .input-group').each(function(index, value){
-      console.log(value)
+      // console.log(value)
       instSettingsObj[$('label',value).text()] = $('input',value).val()
     })
     // console.log(instSettingsObj)
     showStatus('Working...');
     // showStatus()
     // this.disabled = false
-
+    var form = $('#installSettings').serializeObject()
     // // Send the value to the server and handle the response.
     google.script.run
-        .withSuccessHandler(
-          function(msg, element) {
-            console.log(JSON.stringify(instSettingsObj) + "\n" + element)
-            // Respond to success conditions here.
-            showStatus('Execution successful.');
-            element.disabled = false;
-          })
         .withFailureHandler(
           function(msg, element) {
             // Respond to failure conditions here.
             showStatus('Execution failed: ' + msg, 'error');
             element.disabled = false;
           })
+        .withSuccessHandler(
+          function(msg, element) {
+            console.log(JSON.stringify(instSettingsObj) + "\n" + element)
+            // Respond to success conditions here.
+            showStatus('Execution successful.');
+            element.disabled = false;
+            google.script.host.close()
+          })
         .withUserObject(this)
-        .getSettings(instSettingsObj);
-  }
+        .setSettings(form)
 
+
+  }
 
   /**
    * Displays the given status message in the dialog.
