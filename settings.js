@@ -117,6 +117,7 @@ function loadSettings(activeSpreadsheet, settingsName) {
     ASSIGNEE = settingsObj.defaultAssignee; // put in the e-mail addresss you use to log into asana
     PREMIUM = settingsObj.asanaPremium
     PREMIUM_FIELDS = JSON.parse(settingsObj.premiumFields)
+    RUNLOG_ID = settingsObj.logSheet
     return {settingsObj: settingsObj, settingsRange: settingsRange, settingsSheet: settingsSheet}
 }
 

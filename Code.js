@@ -5,7 +5,7 @@
 - switch children and tags to batch processing
 - append row to sheet
 - replace range in google sheet (intake form)
-- allow replaceText to take multiple repeats of the same column 
+- [x] allow replaceText to take multiple repeats of the same column 
 - dateFormat should not error when given the same column twice
 - add additional projects to children 
 - [x] trim all fields as they come in
@@ -38,6 +38,7 @@ function onOpen() {
             ui.createMenu('Advanced').addItem('Settings', 'showDialog')
             .addItem('Install', 'installSettings')
         ).addToUi();
+    loadSettings(SpreadsheetApp.getActiveSpreadsheet(), Settings.get.settingsName)
 }
 
 function showDialog(dialogTemplate) {
@@ -80,7 +81,6 @@ function processEntries() {
 }
 
 function process(settingsObj, formTable, row) {
-    try {
         runLog("Merging Row: " + row)
         var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
         var valuesObj = textFormat(JSON.parse(settingsObj["dateFormatArray"]), JSON.parse(settingsObj["replaceTextArray"]), formTable, contents)
@@ -89,7 +89,7 @@ function process(settingsObj, formTable, row) {
         var Asana = asanaProcess(settingsObj, formTable, rowValues, rowValuesArray)
         //        Logger.log(Asana.response.result)
         //        alertTeam(title, text, url, id, webhookURI)
-        if (settingsObj["alertTeam"] === true) {
+        if (settingsObj.alertTeam) {
             alertTeam("Summer 2018: " + Asana.response.result["name"], Asana.response.result["notes"], Asana.response["url"],
                 Asana.response.result["id"].toString(), settingsObj["teamsWebHookUri"])
         }
@@ -111,7 +111,4 @@ function process(settingsObj, formTable, row) {
             setStatus(settingsObj, formTable.sheet, formTable.cols, row, Asana.response)
         }
         //        
-    } catch (e) {
-        errorLog(e)
-    }
 }

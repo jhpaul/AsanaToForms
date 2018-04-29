@@ -12,10 +12,10 @@ function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
     // var rowValues = valuesObj.rowValues
     // var rowValuesArray = valuesObj.rowValuesArray
 
-    Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["dateFormat"],
+    Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["titleDateFormat"],
         settingsObj["timeZone"]) //, dateFormat, dateTimeZone
     Asana.task.name = Asana.taskName
-    if (PROCESS_TAGS) {
+    if (settingsObj.processTags) {
         Asana.task.tags = processTags(settingsObj, rowValues)
     }
     Asana.task.due_on = dueDate(settingsObj.dueDateDuration)
