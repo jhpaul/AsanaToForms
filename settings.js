@@ -1,23 +1,11 @@
 
-// function getSettings(settings) {
-//     var scriptProperties = PropertiesService.getScriptProperties()
-//     if (settings) {
-//         scriptProperties.setProperties(settings, true)
-//     }
-//     return scriptProperties.getProperties()
-// }
-
-// function test() {
-//     Logger.log(getSettings({
-//         "a": "B"
-//     }))
-// }
-
-
 var Settings = {}
 function installSettings(){
     Settings.install()
 }
+/**
+ * 
+ */
 Settings.install = function (){
    var scriptProperties = PropertiesService.getScriptProperties()
    if (!scriptProperties){
@@ -122,13 +110,6 @@ function loadSettings(activeSpreadsheet, settingsName) {
 }
 
 function buildSettings(Settings) {
-//    var scriptProperties = PropertiesService.getScriptProperties();
-//    scriptProperties.setProperties({
-//        settingsTemplate: "",
-//        settingsName: "SETTINGS"
-//    });
-//    Logger.log(scriptProperties.getProperties())
-  
     var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
     var settingsObj = loadSettings(activeSpreadsheet, Settings)
     Logger.log(settingsObj)
@@ -137,15 +118,7 @@ function buildSettings(Settings) {
     var protection = sheet.protect()
     activeSpreadsheet.setNamedRange(Settings.settingsName, range)
     protection.setWarningOnly(true)
-    //function showSidebar() {
-//    var html = HtmlService.createHtmlOutputFromFile('page')
-//        .setTitle('My custom sidebar')
-//        .setWidth(300);
-//    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
-//        .showSidebar(html);
 }
-
-
 
 
 function run() {
