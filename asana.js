@@ -1,24 +1,28 @@
+/**
+ * @description build an asana task
+ * @param {*} settingsObj
+ * @param {*} formTable
+ * @param {*} rowValues
+ * @param {*} rowValuesArray
+ * @returns
+ */
 function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
     var Asana = {
         taskName: "",
         task: {},
         response: {}
     }
-    // runLog("Merging Row: " + row)
-    // var contents = getRowCells_(formTable.sheet, formTable.cols, row)[0];
-    // var valuesObj = dateFormat(JSON.parse(settingsObj["dateFormatArray"].trim()), formTable, contents)
-    // valuesObj = replaceText(JSON.parse(settingsObj["replaceTextArray"]),valuesObj)
-    // Logger.log(valuesObj)
-    // var rowValues = valuesObj.rowValues
-    // var rowValuesArray = valuesObj.rowValuesArray
-
-    Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj["titleDateFormat"],
-        settingsObj["timeZone"]) //, dateFormat, dateTimeZone
+    Asana.taskName = merge(settingsObj["taskName"], rowValuesArray, formTable.headerArray, settingsObj.titleDateFormat, settingsObj.timeZone) //, dateFormat, dateTimeZone
     Asana.task.name = Asana.taskName
     if (settingsObj.processTags) {
         Asana.task.tags = processTags(settingsObj, rowValues)
     }
-    Asana.task.due_on = dueDate(settingsObj.dueDateDuration)
+    if ( settingsObj["dueTime"] === "" || settingsObj["dueTime"] === null ||  settingsObj["dueTime"] === undefined) {
+        Asana.task.due_on = dueDate(settingsObj["dueDateDuration"])
+    } else {
+
+        Asana.task.due_at = dueTime(settingsObj["dueDateDuration"], settingsObj["dueTime"])        
+    }
     Asana.task.assignee = settingsObj["assignee"]
     Asana.task.followers = ifSplit(settingsObj.followers, ",")
 
@@ -35,6 +39,46 @@ function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
 }
 
 
+/**
+ * @description
+ * @param {*} dueDateDuration
+ * @returns date-formatted value of relative due date for asana task
+ */
+function dueDate(dueDateDuration) {
+    dueDateDuration = parseInt(dueDateDuration)
+    Logger.log("Due relative: "+ dueDateDuration)
+    if (dueDateDuration >= 0) {
+        var date = moment()
+        var dueDate = moment(date, "DD-MM-YYYY").add(dueDateDuration, 'days');
+        Logger.log("Due Date: " + dueDate.format("YYYY-MM-DD"))
+        return dueDate
+    } else {
+        return 
+    }
+}
+
+
+/**
+ * @description 
+ * @param {*} dueDateDuration
+ * @param {*} dueTime
+ * @returns datetime-formatted value of relative due date for asana task
+ */
+function dueTime(dueDateDuration, dueTime) {
+    dueDateDuration = parseInt(dueDateDuration)
+    Logger.log("Due relative: "+ dueDateDuration)
+    if (dueDateDuration >= 0) {
+        var now = moment().add(dueDateDuration,"days").format('MM/DD/YYYY');
+        var time = moment(dueTime,"HH:mm").format("HH:mm")
+        Logger.log(time)
+        var dueDate = moment(now+time,"MM/DD/YYYYHH:mm")
+        // var dueDate = moment(date, "DD-MM-YYYY").add(dueDateDuration, 'days').add(moment.duration(dueTime).asHours(),'hours');
+        Logger.log("Due Time: " + dueDate.format("YYYY-MM-DD hh:mm A"))
+        return dueDate
+    } else {
+        return 
+    }
+}
 
 
 ///////////////Task Object
@@ -60,9 +104,9 @@ function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
  * Asana     Functions    *
  *************************/
 //// first Global constants ... Key Ids / tokens etc.
-//PERSONAL_ACCESS_TOKEN = "0/02a1b265e935693add4621cd19fc84de"; // Put your unique Personal access token here
-//WORKSPACE_ID = "7185179729347"; // Put in the main workspace key you want to access (you can copy from asana web address)
-//ASSIGNEE = "riphilbot@riphil.org"; // put in the e-mail addresss you use to log into asana
+//PERSONAL_ACCESS_TOKEN = "0/"; // Put your unique Personal access token here
+//WORKSPACE_ID = ""; // Put in the main workspace key you want to access (you can copy from asana web address)
+//ASSIGNEE = ""; // put in the e-mail addresss you use to log into asana
 //PREMIUM = false
 //PREMIUM_FIELDS = ["start_on"]
 // ** testTask() **  is useful for using as a Debug start point.  "select function" on script editor menu
@@ -70,6 +114,7 @@ function asanaProcess(settingsObj, formTable, rowValues, rowValuesArray) {
 function testTask() {
     quickTask("a quick task")
 };
+
 // ** quickTask(taskName) ** Made a short function so I could just add simple tasks easily
 function quickTask(taskName) {
     var newTask = {
@@ -80,6 +125,8 @@ function quickTask(taskName) {
     }
     createAsanaTask(newTask);
 };
+
+
 /******************************************************************************************
  **  createAsanaTask(task) **
  ************************ 
@@ -113,8 +160,8 @@ function quickTask(taskName) {
 	"hearted": false,
 	"memberships": [{"project":"","section":""}],
 	"tags":[]
-}
-
+} 
+SOURCE = https://stackoverflow.com/questions/30188226/creating-asana-tasks-from-google-apps-script?rq=1
  *************************************************************************************************/
 function createAsanaTask(settingsObj, task) {
     // when creating an Asana task you must have at least a workspace id and an assignee
@@ -219,6 +266,13 @@ function createAsanaTask(settingsObj, task) {
     }
 };
 
+/**
+ * @description
+ * @param {*} method
+ * @param {*} endpoint
+ * @param {*} payload
+ * @returns
+ */
 function callAsanaApi(method, endpoint, payload) {
     var options = {
         method: method,
@@ -240,24 +294,41 @@ function callAsanaApi(method, endpoint, payload) {
     return resultData
 }
 
+/**
+ * @description
+ * @param {*} settingsObj
+ * @param {*} rowValues
+ * @returns
+ */
 function processTags(settingsObj, rowValues) {
     try {
         var tagArray = JSON.parse(settingsObj.customTags)
+        console.log("Processing " + tagArray.length + " tags")
         runLog("Processing " + tagArray.length + " tags")
         var tags = []
         tagArray.forEach(function(each) {
             var value = rowValues[each.columnName]
-            if (each.id === "" || each.id === null) {
-                if (each.name === "" || each.name === null) {
-                    each.id = ""
-                } else {
+            Logger.log("tag: " + JSON.stringify(each))
+
+
+
+            if (each.id === "" || each.id === null || each.id === undefined) {
+
+                if (each.name === "" || each.name === null || each.name === undefined) {
+
+                    return
+
+                } 
+                else {
                     Logger.log("==================")
                     var tagsArray = callAsanaApi("GET", "tags")
                     var found = search(each.name, tagsArray)
+                    
                     if (found) {
                         each.id = found.id
                         runLog("Tag ID for " + each.name + " is " + each.id)
-                    } else {
+                    } 
+                    else {
                         each.id = ""
                         runLog("No ID Found \n Creating tag: " + each.name)
                         var payload = {}
@@ -265,13 +336,15 @@ function processTags(settingsObj, rowValues) {
                         payload.data.name = each.name
                         payload.data.workspace = WORKSPACE_ID
                         var tagJSON = callAsanaApi("POST", "tags", JSON.stringify(payload))
-                        //                                   Logger.log(JSON.stringify(tagJSON))
+                        // Logger.log(JSON.stringify(tagJSON))
                         each.id = tagJSON.id
                     }
                 }
             }
-            if (value !== "" && each.id) {
+            if (value !== "" && value !== undefined) {
                 if (each.columnValue === undefined || each.columnValue === null || each.columnValue === value) {
+                    //            if (each.columnName === undefined || each.columnName === null || each.columnName ===
+
                     tags.push(each.id)
                 }
             }
@@ -281,7 +354,14 @@ function processTags(settingsObj, rowValues) {
         errorLog(e)
     }
 }
+
 // Takes an object and creates subtasks of main task. If provided columnName and columnValue parameters, tasks can be selectively created.
+/**
+ * @description
+ * @param {*} settingsObj
+ * @param {*} rowValues
+ * @param {*} taskResults
+ */
 function processChildren(settingsObj, rowValues, taskResults) {
     try {
         // todo: add due date processing
@@ -289,7 +369,7 @@ function processChildren(settingsObj, rowValues, taskResults) {
         runLog("Processing " + children.length + " children")
         children.forEach(function(each) {
             var value = rowValues[each.columnName]
-            //      Logger.log(value)
+                //  Logger.log(value)
             //      child = {}
             each.parent = taskResults.result["id"].toString()
             //      each.name = each.name
@@ -297,10 +377,19 @@ function processChildren(settingsObj, rowValues, taskResults) {
             if (value !== "") {
                 if (each.columnValue === undefined || each.columnValue === null || each.columnValue === value) {
                     //            if (each.columnName === undefined || each.columnName === null || each.columnName ===
-                    if (each.dueDateDuration !== "" && (each.dueDateDuration !== undefined || each.dueDateDuration !==
-                            null)) {
-                        each.due_on = dueDate(each.dueDateDuration)
-                    }
+                    if (each.dueDateDuration === "" || (each.dueDateDuration === undefined || each.dueDateDuration ===
+                        null)) {
+                            return
+                        } else {
+                            Logger.log(each.dueTime)
+                            if ( each.dueTime === "" || each.dueTime === null ||  each.dueTime === undefined) {
+                                each.due_on = dueDate(each.dueDateDuration)
+                            } 
+                            else {
+                        
+                                each.due_at = dueTime(each.dueDateDuration, each.dueTime)        
+                            }
+                        }
                     createAsanaTask(settingsObj, each)
                 }
             }
@@ -310,6 +399,11 @@ function processChildren(settingsObj, rowValues, taskResults) {
     }
 }
 
+/**
+ * @description
+ * @param {*} taskId
+ * @returns
+ */
 function asanaCommentURI(taskId) {
     var method = "POST"
     var endpoint = "tasks/" + taskId + "/stories"

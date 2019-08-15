@@ -2,13 +2,17 @@
   "timeZone": "America/New_York",
   "dependencies": {
     "libraries": [{
+      "userSymbol": "MailMerge",
+      "libraryId": "1Fvd-OtdzYzd4edFKsD3RPcjQ6YV3hmoJxJuBNK1g_qUtI_MuEXeyIps2",
+      "version": "9"
+    }, {
       "userSymbol": "Moment",
       "libraryId": "15hgNOjKHUG4UtyZl9clqBbl23sDvWMS8pfDJOyIapZk5RBqwL3i-rlCo",
       "version": "9"
     }, {
-      "userSymbol": "MailMerge",
-      "libraryId": "1Fvd-OtdzYzd4edFKsD3RPcjQ6YV3hmoJxJuBNK1g_qUtI_MuEXeyIps2",
-      "version": "9"
+      "userSymbol": "CopyFormulasDown",
+      "libraryId": "1BrIJmbyw_bESPPrE1JXu2dzLl32AhaeV2c0rcKnqDR01QWmmJYB6GfY6",
+      "version": "2"
     }]
   },
   "exceptionLogging": "STACKDRIVER"

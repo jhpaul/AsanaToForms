@@ -1,11 +1,32 @@
 
 var Settings = {}
+function run() {
+    processEntries()
+}
+
 function installSettings(){
     Settings.install()
 }
-/**
- * 
- */
+
+function setSettings(settingsObj){
+    return Settings.set(settingsObj)
+}
+
+function loadSettings(activeSpreadsheet, settingsName) {
+    return Settings.load(activeSpreadsheet, settingsName);
+}
+
+function buildSettings(Settings) {
+    return Settings.build(Settings)
+}
+
+function test(){
+    PropertiesService.getScriptProperties().deleteAllProperties()
+    Logger.log(Settings.get())
+    Logger.log(Settings.install())
+  }
+
+
 Settings.install = function (){
    var scriptProperties = PropertiesService.getScriptProperties()
    if (!scriptProperties){
@@ -14,11 +35,25 @@ Settings.install = function (){
         settingsName: "SETTINGS"
     });
     }
-  buildSettings(Settings)
+  Settings.build(Settings)
   runLog("Default Settings Added Successfully", SpreadsheetApp.getActiveSpreadsheet())
-//  return Settings.get()
+
 
 }
+
+Settings.build = function(Settings) {
+    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+    var settingsObj = Settings.load(activeSpreadsheet, Settings)
+    Logger.log(settingsObj)
+    var sheet = settingsObj.settingsSheet
+    var range = settingsObj.settingsRange
+    var protection = sheet.protect()
+    activeSpreadsheet.setNamedRange(Settings.settingsName, range)
+    protection.setWarningOnly(true)
+}
+
+
+
 
 
 Settings.get = function(settings){
@@ -29,16 +64,14 @@ Settings.get = function(settings){
   return null
 }
 
-function setSettings(settingsObj){
-    Settings.set(settingsObj)
-}
+
 
 Settings.set = function(settings) {
   if (settings){
     var scriptProperties = PropertiesService.getScriptProperties()
           scriptProperties.setProperties(settings)
-        }
-    }
+   }
+}
 
 Settings.clear = function(){
     PropertiesService.getScriptProperties().deleteAllProperties
@@ -46,42 +79,42 @@ Settings.clear = function(){
 }
 
 
-
-function test(){
-  PropertiesService.getScriptProperties().deleteAllProperties()
-  Logger.log(Settings.get())
-  Logger.log(Settings.install())
-}
-
-
-
-function loadSettings(activeSpreadsheet, settingsName) {
+/**
+ * @description
+ * @param {*} activeSpreadsheet
+ * @param {*} settingsName
+ * @returns {settingsObj: settingsObj, settingsRange: settingsRange, settingsSheet: settingsSheet}
+ */
+Settings.load = function(activeSpreadsheet, settingsName) {
     ///// Load Settings Sheet
     var scriptSettings = Settings.get()
-    var settingsSheet = activeSpreadsheet.getSheetByName(scriptSettings.settingsName)
-
-    if (!scriptSettings || scriptSettings === {}){
+    //var settingsSheet = activeSpreadsheet.getSheetByName("Settings")
+    if (activeSpreadsheet) {
+      var settingsSheet = activeSpreadsheet.getSheetByName("SETTINGS")
+      } //else settingsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETTINGS")
+  
+    
+      if (!scriptSettings || scriptSettings === {}){
         Settings.set({
-            settingsName: "SETTINGS"
+            settingsName:  defaults.settingsSheetName
         })
         var scriptSettings = Settings.get()
     }
     if (!scriptSettings.settingsName){
         Settings.set({
-            settingsName: "SETTINGS"
+            settingsName: defaults.settingsSheetName
         })
         var scriptSettings = Settings.get()
     }
     if (!scriptSettings.settingsTemplate){
         Settings.set({
-            settingsTemplate: "1fqFoBN1T_T78ME4XalCddEIosqFIghM9San3p6Fe5Ag"
+            settingsTemplate: defaults.settingsTemplate
         })
         var scriptSettings = Settings.get()
     }               
-
     Logger.log(scriptSettings)
     if (!settingsSheet) {
-      Logger.log("Run")
+        Logger.log("Run")
         var set = SpreadsheetApp.openById(scriptSettings.settingsTemplate)
         var settingsSheet = set.getSheets()[0].copyTo(activeSpreadsheet).setName(scriptSettings.settingsName)
     }
@@ -100,36 +133,17 @@ function loadSettings(activeSpreadsheet, settingsName) {
             settingsObj[key] = value
         }
     }
+    Logger.log (settingsObj)
     PERSONAL_ACCESS_TOKEN = settingsObj.personalAccessToken; // Put your unique Personal access token here
     WORKSPACE_ID = settingsObj.workspaceId; // Put in the main workspace key you want to access (you can copy from asana web address)
     ASSIGNEE = settingsObj.defaultAssignee; // put in the e-mail addresss you use to log into asana
     PREMIUM = settingsObj.asanaPremium
     PREMIUM_FIELDS = JSON.parse(settingsObj.premiumFields)
     RUNLOG_ID = settingsObj.logSheet
-    return {settingsObj: settingsObj, settingsRange: settingsRange, settingsSheet: settingsSheet}
-}
-
-function buildSettings(Settings) {
-    var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
-    var settingsObj = loadSettings(activeSpreadsheet, Settings)
-    Logger.log(settingsObj)
-    var sheet = settingsObj.settingsSheet
-    var range = settingsObj.settingsRange
-    var protection = sheet.protect()
-    activeSpreadsheet.setNamedRange(Settings.settingsName, range)
-    protection.setWarningOnly(true)
+    Settings.object = {settingsObj: settingsObj, settingsRange: settingsRange, settingsSheet: settingsSheet}
+    return Settings.object
 }
 
 
-function run() {
-    processEntries()
-}
 
-function emailSplitJoin(value, split, join) {
-    //  Logger.log(value)
-    if (value) {
-        return value.split(split).join(join)
-    } else {
-        return null
-    }
-}
+

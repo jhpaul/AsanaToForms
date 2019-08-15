@@ -5,3 +5,4 @@ package-lock.json
 .vscode
 testSheet.html
 .clasp.json
+node_modules
