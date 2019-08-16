@@ -4,7 +4,10 @@
  * @param {*} activeSpreadsheet
  * @returns formTable
  */
+
 function loadFormTable(dataSheet, activeSpreadsheet) {
+    if (activeSpreadsheet) {}
+    else var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = activeSpreadsheet.getSheetByName(dataSheet)
 
     // Load Headers
@@ -18,7 +21,7 @@ function loadFormTable(dataSheet, activeSpreadsheet) {
         headerKey[each] = headerArray[each]
     }
     runLog("Processing " + cols + " columns and " + rows + " rows");
-		Logger.log("HeaderKey: " + JSON.stringify(headerKey))
+    Logger.log("HeaderKey: " + JSON.stringify(headerKey))
     var formTable = {
         sheet: sheet,
         headerKey: headerKey,
@@ -41,7 +44,8 @@ function getRowCells_(sheet, cols, row) {
         var rowContents = sheet.getRange(row, 1, 1, cols);
         var rowContentsValues = rowContents.getValues();
         return rowContentsValues
-    } catch (e) {
+    }
+    catch (e) {
         errorLog(e)
     }
 
@@ -59,18 +63,19 @@ function emailSplitJoin(value, split, join) {
     //  Logger.log(value)
     if (value) {
         return value.split(split).join(join)
-    } else {
+    }
+    else {
         return null
     }
 }
 
-function swap(json){
+function swap(json) {
     var ret = {};
-    for(var key in json){
-      ret[json[key]] = key;
+    for (var key in json) {
+        ret[json[key]] = key;
     }
     return ret;
-  }
+}
 
 
 /**
@@ -160,7 +165,8 @@ function setStatus(settingsObj, sheet, cols, row, result) {
         //			new Date(), "EST", "yyyy-MM-dd'T'HH:mm:ss'Z'"))
         statusRanges.url.setValue(result["url"])
         statusRanges.id.setValue(result["result"]["id"])
-    } catch (e) {
+    }
+    catch (e) {
         errorLog(e)
     }
 }
@@ -181,7 +187,8 @@ Body.create = function(settingsObj, rowValues) {
         }
         if (found) {
             Logger.log("Excluding " + each)
-        } else {
+        }
+        else {
 
             asanaBody += "<b>" + each + ":    </b>" + rowValues[each] +
                 " \n \n"
@@ -210,7 +217,8 @@ function ifSplit(item, splitBy) {
             item.split(splitBy).map(function(i) {
                 return i.trim()
             })
-        } else {
+        }
+        else {
             return item.trim()
         }
     }
@@ -228,7 +236,7 @@ function ifSplit(item, splitBy) {
  * @returns either the template or the template with values replaced
  */
 function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
-    Logger.log("Merging: "+template)
+    Logger.log("Merging: " + template)
     if (template === undefined) {
         return ""
     }
@@ -237,9 +245,11 @@ function merge(template, rowValues, headers, dateFormat, dateTimeZone) {
     }
     if (JSON.stringify(template).indexOf("${") > 0) {
         return MailMerge.createTextFromTemplate(template, rowValues, headers, dateFormat, dateTimeZone)
-    } else if (typeof template === "string") {
+    }
+    else if (typeof template === "string") {
         return template
-    } else {
+    }
+    else {
         return ""
     }
 }
@@ -267,22 +277,22 @@ function textFormat(dateFormatArray, replaceTextArray, formTable, contents) {
         var cell = contents[each]
 
         if (typeof cell === "string") { cell = cell.trim() }
-        if (cell < 10000 && (headerVal.toLowerCase() === "zip" || headerVal.toLowerCase() === "zip code" || headerVal.toLowerCase() === "zipcode") ) {cell = "0"+cell}
+        if (cell < 10000 && (headerVal.toLowerCase() === "zip" || headerVal.toLowerCase() === "zip code" || headerVal.toLowerCase() === "zipcode")) { cell = "0" + cell }
         Logger.log(cell)
         //            runLog("Processing "+dateFormatArray.length+" custom dates")
         //        Logger.log([headerVal, dateFormatArray, cell])
         var clean = cell
         for (var header in dateFormatArray) {
-          
-          
+
+
             if (headerVal === dateFormatArray[header].columnName && cell) {
                 Logger.log(["MATCH", dateFormatArray[header].columnName, cell])
                 var date = moment(cell).format(dateFormatArray[header].dateFormat)
-                var dateClean = Utilities.formatDate(moment(cell).toDate(),"EST", "MM/dd/yyyy HH:mm:ss")
+                var dateClean = Utilities.formatDate(moment(cell).toDate(), "EST", "MM/dd/yyyy HH:mm:ss")
                 cell = date
                 clean = dateClean
 
-            } 
+            }
 
         }
         for (var header in replaceTextArray) {
@@ -292,16 +302,16 @@ function textFormat(dateFormatArray, replaceTextArray, formTable, contents) {
                     cell = cell.split(replaceTextArray[header].find).join(replaceTextArray[header].replace)
 
                 }
-            } 
-         }
-                rowValues[headerVal] = cell
-                rowValuesArray.push(cell)
-                cleanValues[headerVal] = clean
-                cleanValuesArray.push(clean)
-                
+            }
+        }
+        rowValues[headerVal] = cell
+        rowValuesArray.push(cell)
+        cleanValues[headerVal] = clean
+        cleanValuesArray.push(clean)
+
     }
 
-  var valuesObj = {
+    var valuesObj = {
         rowValues: rowValues,
         rowValuesArray: rowValuesArray,
         formTable: formTable,
@@ -309,9 +319,9 @@ function textFormat(dateFormatArray, replaceTextArray, formTable, contents) {
         cleanValuesArray: cleanValuesArray,
         originalFormTable: originalFormTable
     }
-//Logger.log(valuesObj)
+    //Logger.log(valuesObj)
     return valuesObj
- 
+
 }
 
 
@@ -323,21 +333,22 @@ function textFormat(dateFormatArray, replaceTextArray, formTable, contents) {
  * @returns range of status columns
  */
 function loadStatusCols(settingsObj, formTable) {
-  try {
-    var statusCols = {}
-    statusCols.statusColName = settingsObj["statusColumnName"];
-    statusCols.statusCol = getByName(statusCols.statusColName, formTable.sheet) + 1;
-    statusCols.statusRange = formTable.sheet.getRange(2, statusCols.statusCol, formTable.rows);
-    statusCols.statusRangeValues = statusCols.statusRange.getValues();
-    statusCols.verificationColName = "Timestamp" //settingsObj["statusColumnName"];
-    statusCols.verificationCol = getByName(statusCols.verificationColName, formTable.sheet) + 1;
-    statusCols.verificationRange = formTable.sheet.getRange(2, statusCols.verificationCol, formTable.rows);
-    statusCols.verificationRangeValues = statusCols.verificationRange.getValues();
-          Logger.log(statusCols.verificationCol)
-    return statusCols
-  } catch (e) {
-    errorLog(e ,"Unable to load Status Columns");
-    
+    try {
+        var statusCols = {}
+        statusCols.statusColName = settingsObj["statusColumnName"];
+        statusCols.statusCol = getByName(statusCols.statusColName, formTable.sheet) + 1;
+        statusCols.statusRange = formTable.sheet.getRange(2, statusCols.statusCol, formTable.rows);
+        statusCols.statusRangeValues = statusCols.statusRange.getValues();
+        statusCols.verificationColName = "Timestamp" //settingsObj["statusColumnName"];
+        statusCols.verificationCol = getByName(statusCols.verificationColName, formTable.sheet) + 1;
+        statusCols.verificationRange = formTable.sheet.getRange(2, statusCols.verificationCol, formTable.rows);
+        statusCols.verificationRangeValues = statusCols.verificationRange.getValues();
+        Logger.log(statusCols.verificationCol)
+        return statusCols
+    }
+    catch (e) {
+        errorLog(e, "Unable to load Status Columns");
+
     }
 }
 
@@ -369,38 +380,39 @@ function addDays(date, days) {
     return result;
 }
 
-function addToTracker(settingsObj, rowValues, headers, response){
+function addToTracker(settingsObj, rowValues, headers, response) {
     try {
-    trackerWorkbook = SpreadsheetApp.openById(settingsObj["appendDestinationId"]);
-    trackerSheet = trackerWorkbook.getSheetByName(settingsObj["appendDestinationSheet"]);
-    targetFormTable = loadFormTable(settingsObj["appendDestinationSheet"], SpreadsheetApp.openById(settingsObj["appendDestinationId"]) )
-    urlName = settingsObj["urlColumnName"]
-    rowValues[headers.indexOf(urlName)] = response.url
-    mergedObj = merge(settingsObj["appendColumns"], rowValues, headers, settingsObj.titleDateFormat, settingsObj.timeZone)
-    var trackArray = JSON.parse(mergedObj)
-    // Logger.log(JSON.stringify(targetFormTable["headerArray"]) +'\n====\n'+JSON.stringify(trackArray))
-    
-    trackArray.forEach(function(each) {
-        var headerIndex = swap(targetFormTable.headerKey)
-        var index = headerIndex[each["targetColumn"]]
-        if (index) {
-        // Logger.log('\n=='+parseInt(index))
+        trackerWorkbook = SpreadsheetApp.openById(settingsObj["appendDestinationId"]);
+        trackerSheet = trackerWorkbook.getSheetByName(settingsObj["appendDestinationSheet"]);
+        targetFormTable = loadFormTable(settingsObj["appendDestinationSheet"], SpreadsheetApp.openById(settingsObj["appendDestinationId"]))
+        urlName = settingsObj["urlColumnName"]
+        rowValues[headers.indexOf(urlName)] = response.url
+        mergedObj = merge(settingsObj["appendColumns"], rowValues, headers, settingsObj.titleDateFormat, settingsObj.timeZone)
+        var trackArray = JSON.parse(mergedObj)
+        // Logger.log(JSON.stringify(targetFormTable["headerArray"]) +'\n====\n'+JSON.stringify(trackArray))
 
-            var col = parseInt(index) + 1
-            var row = targetFormTable.rows + 2
-     
-            // Logger.log(col+"\n"+row)
-            var cell = trackerSheet.getRange(row, col)
-            cell.setValue(each["sourceColumn"])
-        }
+        trackArray.forEach(function(each) {
+            var headerIndex = swap(targetFormTable.headerKey)
+            var index = headerIndex[each["targetColumn"]]
+            if (index) {
+                // Logger.log('\n=='+parseInt(index))
 
-    });
+                var col = parseInt(index) + 1
+                var row = targetFormTable.rows + 2
+
+                // Logger.log(col+"\n"+row)
+                var cell = trackerSheet.getRange(row, col)
+                cell.setValue(each["sourceColumn"])
+            }
+
+        });
 
 
-    CopyFormulasDown.copyFormulasDown(trackerSheet, settingsObj["appendCopyFormulaRow"]);
-    } catch(e) { errorLog(e) }
-  }
-  
+        CopyFormulasDown.copyFormulasDown(trackerSheet, settingsObj["appendCopyFormulaRow"]);
+    }
+    catch (e) { errorLog(e) }
+}
+
 
 
 
@@ -410,21 +422,22 @@ function addToTracker(settingsObj, rowValues, headers, response){
 
 function runLog(message, activeSheet) {
     try {
-//        var ID = RUNLOG_ID;
-//        if (activeSheet) {
-//            activeSheet.toast(message)
-//            console.log(message)
-//        }
-//        var sheet = SpreadsheetApp.openById(ID).getActiveSheet()
-//        sheet.appendRow([Utilities.formatDate(new Date(), "EST",
-//            "MM/dd/YYYY HH:mm"), message])
-        Logger.log(message)
-    } catch (e) {
+        //        var ID = RUNLOG_ID;
+        //        if (activeSheet) {
+        //            activeSheet.toast(message)
+        //            console.log(message)
+        //        }
+        //        var sheet = SpreadsheetApp.openById(ID).getActiveSheet()
+        //        sheet.appendRow([Utilities.formatDate(new Date(), "EST",
+        //            "MM/dd/YYYY HH:mm"), message])
+        Logger.log(message);
+    }
+    catch (e) {
         errorLog(e, message)
     }
 }
 
 function errorLog(e, message) {
 
-  throw new Error(message + ": "+e.name)//+" | "+e.message+" | " + e.lineNumber+ " | " + e.fileName)
+    throw new Error(message + ": " + e.name) //+" | "+e.message+" | " + e.lineNumber+ " | " + e.fileName)
 }

@@ -89,9 +89,10 @@ Settings.load = function(activeSpreadsheet, settingsName) {
     ///// Load Settings Sheet
     var scriptSettings = Settings.get()
     //var settingsSheet = activeSpreadsheet.getSheetByName("Settings")
+    Logger.log("Active Spreadsheet \n" + toString(activeSpreadsheet));
     if (activeSpreadsheet) {
-      var settingsSheet = activeSpreadsheet.getSheetByName("SETTINGS")
-      } //else settingsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETTINGS")
+      var settingsSheet = activeSpreadsheet.getSheetByName("SETTINGS");
+      } else var settingsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SETTINGS");
   
     
       if (!scriptSettings || scriptSettings === {}){
@@ -113,11 +114,11 @@ Settings.load = function(activeSpreadsheet, settingsName) {
         var scriptSettings = Settings.get()
     }               
     Logger.log(scriptSettings)
-    if (!settingsSheet) {
+//    if (!settingsSheet) {
         Logger.log("Run")
-        var set = SpreadsheetApp.openById(scriptSettings.settingsTemplate)
-        var settingsSheet = set.getSheets()[0].copyTo(activeSpreadsheet).setName(scriptSettings.settingsName)
-    }
+//        var set = SpreadsheetApp.openById(scriptSettings.settingsTemplate)
+//        var settingsSheet = set.getSheets()[0].copyTo(activeSpreadsheet).setName(scriptSettings.settingsName)
+//    }
     //        Logger.log(settings)
     var setLength = settingsSheet.getLastRow()
     //    Logger.log("last row " + setLength)
